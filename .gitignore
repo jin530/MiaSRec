@@ -1,0 +1,5 @@
+saved_best/*
+__pycache__/*
+log_tensorboard/*
+saved/*
+log/*
