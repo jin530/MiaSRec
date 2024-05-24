@@ -1,0 +1,462 @@
+Thu 23 May 2024 15:11:03 INFO  
+General Hyper Parameters:
+gpu_id = 0
+use_gpu = True
+seed = 2020
+state = INFO
+reproducibility = True
+data_path = dataset/yoochoose
+checkpoint_dir = saved
+show_progress = True
+save_dataset = False
+dataset_save_path = None
+save_dataloaders = False
+dataloaders_save_path = None
+log_wandb = False
+
+Training Hyper Parameters:
+epochs = 300
+train_batch_size = 1024
+learner = adam
+learning_rate = 0.001
+train_neg_sample_args = {'distribution': 'none', 'sample_num': 'none', 'alpha': 'none', 'dynamic': False, 'candidate_num': 0}
+eval_step = 1
+stopping_step = 5
+clip_grad_norm = None
+weight_decay = 0.0
+loss_decimal_place = 4
+
+Evaluation Hyper Parameters:
+eval_args = {'split': {'LS': 'valid_and_test'}, 'order': 'TO', 'group_by': 'user', 'mode': {'valid': 'full', 'test': 'full'}}
+repeatable = True
+metrics = ['Recall', 'MRR']
+topk = [5, 10, 20]
+valid_metric = MRR@20
+valid_metric_bigger = True
+eval_batch_size = 512
+metric_decimal_place = 4
+
+Dataset Hyper Parameters:
+field_separator = 	
+seq_separator =  
+USER_ID_FIELD = session_id
+ITEM_ID_FIELD = item_id
+RATING_FIELD = rating
+TIME_FIELD = timestamp
+seq_len = None
+LABEL_FIELD = label
+threshold = None
+NEG_PREFIX = neg_
+load_col = {'inter': ['session_id', 'item_id_list', 'item_id']}
+unload_col = None
+unused_col = None
+additional_feat_suffix = None
+rm_dup_inter = None
+val_interval = None
+filter_inter_by_user_or_item = True
+user_inter_num_interval = [0,inf)
+item_inter_num_interval = [0,inf)
+alias_of_user_id = None
+alias_of_item_id = ['item_id_list']
+alias_of_entity_id = None
+alias_of_relation_id = None
+preload_weight = None
+normalize_field = None
+normalize_all = None
+ITEM_LIST_LENGTH_FIELD = item_length
+LIST_SUFFIX = _list
+MAX_ITEM_LIST_LENGTH = 50
+POSITION_FIELD = position_id
+HEAD_ENTITY_ID_FIELD = head_id
+TAIL_ENTITY_ID_FIELD = tail_id
+RELATION_ID_FIELD = relation_id
+ENTITY_ID_FIELD = entity_id
+benchmark_filename = ['train', 'valid', 'test']
+
+Other Hyper Parameters: 
+worker = 0
+wandb_project = recbole
+shuffle = True
+require_pow = False
+enable_amp = False
+enable_scaler = False
+transform = None
+numerical_features = []
+discretization = None
+kg_reverse_r = False
+entity_kg_num_interval = [0,inf)
+relation_kg_num_interval = [0,inf)
+MODEL_TYPE = ModelType.SEQUENTIAL
+embedding_size = 100
+inner_size = 256
+n_layers = 2
+n_heads = 2
+hidden_dropout_prob = 0.1
+attn_dropout_prob = 0.1
+hidden_act = gelu
+layer_norm_eps = 1e-12
+initializer_range = 0.02
+loss_type = CE
+sess_dropout = 0.1
+item_dropout = 0.1
+temperature = 0.07
+extractor = all
+aggregator = max_mean
+num_interest = 50
+max_repeat = 2
+use_mean = True
+use_entmax = True
+entmax_with_mean = True
+use_highway = True
+beta_logit = 0.7
+folder = base
+MODEL_INPUT_TYPE = InputType.POINTWISE
+eval_type = EvaluatorType.RANKING
+single_spec = True
+local_rank = 0
+device = cuda
+valid_neg_sample_args = {'distribution': 'uniform', 'sample_num': 'none'}
+test_neg_sample_args = {'distribution': 'uniform', 'sample_num': 'none'}
+
+
+Thu 23 May 2024 15:11:19 INFO  yoochoose
+The number of users: 1434350
+Average actions of users: 1.0
+The number of items: 19690
+Average actions of items: 74.55036382536383
+The number of inters: 1434349
+The sparsity of the dataset: 99.99492128337826%
+Remain Fields: ['session_id', 'item_id_list', 'item_id', 'item_length']
+Thu 23 May 2024 15:11:37 INFO  [Training]: train_batch_size = [1024] train_neg_sample_args: [{'distribution': 'none', 'sample_num': 'none', 'alpha': 'none', 'dynamic': False, 'candidate_num': 0}]
+Thu 23 May 2024 15:11:37 INFO  [Evaluation]: eval_batch_size = [512] eval_args: [{'split': {'LS': 'valid_and_test'}, 'order': 'TO', 'group_by': 'user', 'mode': {'valid': 'full', 'test': 'full'}}]
+Thu 23 May 2024 15:11:37 INFO  MIASREC(
+  (sess_dropout): Dropout(p=0.1, inplace=False)
+  (item_dropout): Dropout(p=0.1, inplace=False)
+  (item_embedding): Embedding(19690, 100, padding_idx=0)
+  (loss_fct): CrossEntropyLoss()
+  (net): TransNet(
+    (position_embedding): Embedding(51, 100)
+    (repeat_embedding): Embedding(3, 100, padding_idx=0)
+    (trm_encoder): TransformerEncoder(
+      (layer): ModuleList(
+        (0-1): 2 x TransformerLayer(
+          (multi_head_attention): MultiHeadAttention(
+            (query): Linear(in_features=100, out_features=100, bias=True)
+            (key): Linear(in_features=100, out_features=100, bias=True)
+            (value): Linear(in_features=100, out_features=100, bias=True)
+            (softmax): Softmax(dim=-1)
+            (attn_dropout): Dropout(p=0.1, inplace=False)
+            (dense): Linear(in_features=100, out_features=100, bias=True)
+            (LayerNorm): LayerNorm((100,), eps=1e-12, elementwise_affine=True)
+            (out_dropout): Dropout(p=0.1, inplace=False)
+          )
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=100, out_features=256, bias=True)
+            (dense_2): Linear(in_features=256, out_features=100, bias=True)
+            (LayerNorm): LayerNorm((100,), eps=1e-12, elementwise_affine=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+    (LayerNorm): LayerNorm((100,), eps=1e-12, elementwise_affine=True)
+    (dropout): Dropout(p=0.1, inplace=False)
+    (highway_fn): Linear(in_features=200, out_features=100, bias=True)
+    (importance_fn): Linear(in_features=200, out_features=1, bias=True)
+  )
+)
+Trainable parameters: 2179613
+Thu 23 May 2024 15:13:49 INFO  epoch 0 training [time: 131.53s, train loss: 5332.6870]
+Thu 23 May 2024 15:13:56 INFO  epoch 0 evaluating [time: 6.55s, valid_score: 0.313000]
+Thu 23 May 2024 15:13:56 INFO  valid result: 
+recall@5 : 0.4727    recall@10 : 0.5855    recall@20 : 0.6724    mrr@5 : 0.2916    mrr@10 : 0.3069    mrr@20 : 0.313
+Thu 23 May 2024 15:13:56 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:16:06 INFO  epoch 1 training [time: 130.22s, train loss: 4540.1704]
+Thu 23 May 2024 15:16:12 INFO  epoch 1 evaluating [time: 6.63s, valid_score: 0.320400]
+Thu 23 May 2024 15:16:12 INFO  valid result: 
+recall@5 : 0.4863    recall@10 : 0.6062    recall@20 : 0.6955    mrr@5 : 0.2979    mrr@10 : 0.3141    mrr@20 : 0.3204
+Thu 23 May 2024 15:16:13 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:18:23 INFO  epoch 2 training [time: 130.48s, train loss: 4397.2001]
+Thu 23 May 2024 15:18:29 INFO  epoch 2 evaluating [time: 6.47s, valid_score: 0.323200]
+Thu 23 May 2024 15:18:29 INFO  valid result: 
+recall@5 : 0.4906    recall@10 : 0.6104    recall@20 : 0.7012    mrr@5 : 0.3006    mrr@10 : 0.3168    mrr@20 : 0.3232
+Thu 23 May 2024 15:18:30 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:20:40 INFO  epoch 3 training [time: 130.28s, train loss: 4333.9558]
+Thu 23 May 2024 15:20:46 INFO  epoch 3 evaluating [time: 6.62s, valid_score: 0.324500]
+Thu 23 May 2024 15:20:46 INFO  valid result: 
+recall@5 : 0.494    recall@10 : 0.6139    recall@20 : 0.7057    mrr@5 : 0.3018    mrr@10 : 0.318    mrr@20 : 0.3245
+Thu 23 May 2024 15:20:47 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:22:57 INFO  epoch 4 training [time: 130.46s, train loss: 4294.3488]
+Thu 23 May 2024 15:23:04 INFO  epoch 4 evaluating [time: 6.61s, valid_score: 0.325800]
+Thu 23 May 2024 15:23:04 INFO  valid result: 
+recall@5 : 0.4965    recall@10 : 0.6158    recall@20 : 0.7068    mrr@5 : 0.3033    mrr@10 : 0.3194    mrr@20 : 0.3258
+Thu 23 May 2024 15:23:04 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:25:14 INFO  epoch 5 training [time: 130.26s, train loss: 4267.1072]
+Thu 23 May 2024 15:25:21 INFO  epoch 5 evaluating [time: 6.61s, valid_score: 0.329400]
+Thu 23 May 2024 15:25:21 INFO  valid result: 
+recall@5 : 0.4976    recall@10 : 0.6169    recall@20 : 0.709    mrr@5 : 0.3069    mrr@10 : 0.3229    mrr@20 : 0.3294
+Thu 23 May 2024 15:25:21 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:27:31 INFO  epoch 6 training [time: 130.33s, train loss: 4242.6693]
+Thu 23 May 2024 15:27:37 INFO  epoch 6 evaluating [time: 6.59s, valid_score: 0.331100]
+Thu 23 May 2024 15:27:37 INFO  valid result: 
+recall@5 : 0.4986    recall@10 : 0.617    recall@20 : 0.7085    mrr@5 : 0.3087    mrr@10 : 0.3247    mrr@20 : 0.3311
+Thu 23 May 2024 15:27:38 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:29:48 INFO  epoch 7 training [time: 130.10s, train loss: 4223.9933]
+Thu 23 May 2024 15:29:54 INFO  epoch 7 evaluating [time: 6.60s, valid_score: 0.332600]
+Thu 23 May 2024 15:29:54 INFO  valid result: 
+recall@5 : 0.5001    recall@10 : 0.619    recall@20 : 0.7106    mrr@5 : 0.3101    mrr@10 : 0.3262    mrr@20 : 0.3326
+Thu 23 May 2024 15:29:54 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:32:04 INFO  epoch 8 training [time: 129.98s, train loss: 4207.2083]
+Thu 23 May 2024 15:32:11 INFO  epoch 8 evaluating [time: 6.62s, valid_score: 0.333300]
+Thu 23 May 2024 15:32:11 INFO  valid result: 
+recall@5 : 0.4999    recall@10 : 0.6186    recall@20 : 0.7099    mrr@5 : 0.3108    mrr@10 : 0.3268    mrr@20 : 0.3333
+Thu 23 May 2024 15:32:11 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:34:21 INFO  epoch 9 training [time: 130.06s, train loss: 4194.1985]
+Thu 23 May 2024 15:34:28 INFO  epoch 9 evaluating [time: 6.61s, valid_score: 0.334500]
+Thu 23 May 2024 15:34:28 INFO  valid result: 
+recall@5 : 0.5001    recall@10 : 0.6189    recall@20 : 0.7102    mrr@5 : 0.3121    mrr@10 : 0.3281    mrr@20 : 0.3345
+Thu 23 May 2024 15:34:28 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:36:37 INFO  epoch 10 training [time: 129.47s, train loss: 4182.3962]
+Thu 23 May 2024 15:36:44 INFO  epoch 10 evaluating [time: 6.61s, valid_score: 0.335400]
+Thu 23 May 2024 15:36:44 INFO  valid result: 
+recall@5 : 0.4999    recall@10 : 0.6191    recall@20 : 0.7112    mrr@5 : 0.3128    mrr@10 : 0.3289    mrr@20 : 0.3354
+Thu 23 May 2024 15:36:44 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:38:56 INFO  epoch 11 training [time: 132.43s, train loss: 4171.6922]
+Thu 23 May 2024 15:39:04 INFO  epoch 11 evaluating [time: 7.62s, valid_score: 0.336000]
+Thu 23 May 2024 15:39:04 INFO  valid result: 
+recall@5 : 0.5003    recall@10 : 0.6199    recall@20 : 0.7117    mrr@5 : 0.3133    mrr@10 : 0.3295    mrr@20 : 0.336
+Thu 23 May 2024 15:39:04 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:41:17 INFO  epoch 12 training [time: 133.12s, train loss: 4163.9414]
+Thu 23 May 2024 15:41:25 INFO  epoch 12 evaluating [time: 7.61s, valid_score: 0.336900]
+Thu 23 May 2024 15:41:25 INFO  valid result: 
+recall@5 : 0.5007    recall@10 : 0.6194    recall@20 : 0.7108    mrr@5 : 0.3145    mrr@10 : 0.3305    mrr@20 : 0.3369
+Thu 23 May 2024 15:41:25 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:43:38 INFO  epoch 13 training [time: 133.00s, train loss: 4156.8873]
+Thu 23 May 2024 15:43:45 INFO  epoch 13 evaluating [time: 7.64s, valid_score: 0.337200]
+Thu 23 May 2024 15:43:45 INFO  valid result: 
+recall@5 : 0.5012    recall@10 : 0.6197    recall@20 : 0.7112    mrr@5 : 0.3148    mrr@10 : 0.3308    mrr@20 : 0.3372
+Thu 23 May 2024 15:43:46 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:45:56 INFO  epoch 14 training [time: 130.90s, train loss: 4149.4359]
+Thu 23 May 2024 15:46:03 INFO  epoch 14 evaluating [time: 6.59s, valid_score: 0.337300]
+Thu 23 May 2024 15:46:03 INFO  valid result: 
+recall@5 : 0.5009    recall@10 : 0.6203    recall@20 : 0.7109    mrr@5 : 0.3148    mrr@10 : 0.3309    mrr@20 : 0.3373
+Thu 23 May 2024 15:46:03 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:48:13 INFO  epoch 15 training [time: 129.98s, train loss: 4143.5852]
+Thu 23 May 2024 15:48:20 INFO  epoch 15 evaluating [time: 6.60s, valid_score: 0.338600]
+Thu 23 May 2024 15:48:20 INFO  valid result: 
+recall@5 : 0.502    recall@10 : 0.6199    recall@20 : 0.7114    mrr@5 : 0.3163    mrr@10 : 0.3322    mrr@20 : 0.3386
+Thu 23 May 2024 15:48:20 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:50:32 INFO  epoch 16 training [time: 132.08s, train loss: 4137.8972]
+Thu 23 May 2024 15:50:39 INFO  epoch 16 evaluating [time: 7.62s, valid_score: 0.338800]
+Thu 23 May 2024 15:50:39 INFO  valid result: 
+recall@5 : 0.5024    recall@10 : 0.6202    recall@20 : 0.7117    mrr@5 : 0.3164    mrr@10 : 0.3323    mrr@20 : 0.3388
+Thu 23 May 2024 15:50:39 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:52:52 INFO  epoch 17 training [time: 132.06s, train loss: 4131.6422]
+Thu 23 May 2024 15:52:58 INFO  epoch 17 evaluating [time: 6.59s, valid_score: 0.339000]
+Thu 23 May 2024 15:52:58 INFO  valid result: 
+recall@5 : 0.501    recall@10 : 0.6208    recall@20 : 0.711    mrr@5 : 0.3165    mrr@10 : 0.3327    mrr@20 : 0.339
+Thu 23 May 2024 15:52:58 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:55:08 INFO  epoch 18 training [time: 129.98s, train loss: 4126.7075]
+Thu 23 May 2024 15:55:15 INFO  epoch 18 evaluating [time: 6.60s, valid_score: 0.339500]
+Thu 23 May 2024 15:55:15 INFO  valid result: 
+recall@5 : 0.5017    recall@10 : 0.6202    recall@20 : 0.7115    mrr@5 : 0.3171    mrr@10 : 0.3331    mrr@20 : 0.3395
+Thu 23 May 2024 15:55:15 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:57:25 INFO  epoch 19 training [time: 129.89s, train loss: 4121.1943]
+Thu 23 May 2024 15:57:31 INFO  epoch 19 evaluating [time: 6.59s, valid_score: 0.339800]
+Thu 23 May 2024 15:57:31 INFO  valid result: 
+recall@5 : 0.5012    recall@10 : 0.6197    recall@20 : 0.7116    mrr@5 : 0.3173    mrr@10 : 0.3333    mrr@20 : 0.3398
+Thu 23 May 2024 15:57:31 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 15:59:42 INFO  epoch 20 training [time: 130.57s, train loss: 4117.3775]
+Thu 23 May 2024 15:59:49 INFO  epoch 20 evaluating [time: 6.60s, valid_score: 0.339900]
+Thu 23 May 2024 15:59:49 INFO  valid result: 
+recall@5 : 0.5024    recall@10 : 0.621    recall@20 : 0.713    mrr@5 : 0.3174    mrr@10 : 0.3335    mrr@20 : 0.3399
+Thu 23 May 2024 15:59:49 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:02:00 INFO  epoch 21 training [time: 131.18s, train loss: 4114.4379]
+Thu 23 May 2024 16:02:07 INFO  epoch 21 evaluating [time: 7.62s, valid_score: 0.340200]
+Thu 23 May 2024 16:02:07 INFO  valid result: 
+recall@5 : 0.5019    recall@10 : 0.6197    recall@20 : 0.7115    mrr@5 : 0.3178    mrr@10 : 0.3338    mrr@20 : 0.3402
+Thu 23 May 2024 16:02:07 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:04:20 INFO  epoch 22 training [time: 132.05s, train loss: 4110.5971]
+Thu 23 May 2024 16:04:27 INFO  epoch 22 evaluating [time: 7.63s, valid_score: 0.340600]
+Thu 23 May 2024 16:04:27 INFO  valid result: 
+recall@5 : 0.5021    recall@10 : 0.6201    recall@20 : 0.7118    mrr@5 : 0.3182    mrr@10 : 0.3342    mrr@20 : 0.3406
+Thu 23 May 2024 16:04:27 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:06:39 INFO  epoch 23 training [time: 132.16s, train loss: 4105.5890]
+Thu 23 May 2024 16:06:46 INFO  epoch 23 evaluating [time: 6.59s, valid_score: 0.340800]
+Thu 23 May 2024 16:06:46 INFO  valid result: 
+recall@5 : 0.5021    recall@10 : 0.6202    recall@20 : 0.7108    mrr@5 : 0.3185    mrr@10 : 0.3344    mrr@20 : 0.3408
+Thu 23 May 2024 16:06:46 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:08:56 INFO  epoch 24 training [time: 130.13s, train loss: 4102.5525]
+Thu 23 May 2024 16:09:04 INFO  epoch 24 evaluating [time: 7.64s, valid_score: 0.341100]
+Thu 23 May 2024 16:09:04 INFO  valid result: 
+recall@5 : 0.5022    recall@10 : 0.6203    recall@20 : 0.7118    mrr@5 : 0.3187    mrr@10 : 0.3346    mrr@20 : 0.3411
+Thu 23 May 2024 16:09:04 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:11:15 INFO  epoch 25 training [time: 130.74s, train loss: 4099.7945]
+Thu 23 May 2024 16:11:21 INFO  epoch 25 evaluating [time: 6.59s, valid_score: 0.341600]
+Thu 23 May 2024 16:11:21 INFO  valid result: 
+recall@5 : 0.5014    recall@10 : 0.6207    recall@20 : 0.7112    mrr@5 : 0.319    mrr@10 : 0.3352    mrr@20 : 0.3416
+Thu 23 May 2024 16:11:21 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:13:33 INFO  epoch 26 training [time: 131.44s, train loss: 4095.6840]
+Thu 23 May 2024 16:13:40 INFO  epoch 26 evaluating [time: 7.61s, valid_score: 0.341400]
+Thu 23 May 2024 16:13:40 INFO  valid result: 
+recall@5 : 0.5017    recall@10 : 0.6209    recall@20 : 0.7112    mrr@5 : 0.319    mrr@10 : 0.3351    mrr@20 : 0.3414
+Thu 23 May 2024 16:15:51 INFO  epoch 27 training [time: 130.79s, train loss: 4093.2566]
+Thu 23 May 2024 16:15:58 INFO  epoch 27 evaluating [time: 7.17s, valid_score: 0.341400]
+Thu 23 May 2024 16:15:58 INFO  valid result: 
+recall@5 : 0.5035    recall@10 : 0.621    recall@20 : 0.7117    mrr@5 : 0.3191    mrr@10 : 0.335    mrr@20 : 0.3414
+Thu 23 May 2024 16:18:10 INFO  epoch 28 training [time: 131.79s, train loss: 4091.6981]
+Thu 23 May 2024 16:18:18 INFO  epoch 28 evaluating [time: 7.50s, valid_score: 0.341700]
+Thu 23 May 2024 16:18:18 INFO  valid result: 
+recall@5 : 0.502    recall@10 : 0.6199    recall@20 : 0.7108    mrr@5 : 0.3194    mrr@10 : 0.3353    mrr@20 : 0.3417
+Thu 23 May 2024 16:18:18 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:20:31 INFO  epoch 29 training [time: 133.03s, train loss: 4088.1954]
+Thu 23 May 2024 16:20:38 INFO  epoch 29 evaluating [time: 7.67s, valid_score: 0.342100]
+Thu 23 May 2024 16:20:38 INFO  valid result: 
+recall@5 : 0.5035    recall@10 : 0.6211    recall@20 : 0.711    mrr@5 : 0.3199    mrr@10 : 0.3358    mrr@20 : 0.3421
+Thu 23 May 2024 16:20:38 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:22:51 INFO  epoch 30 training [time: 133.11s, train loss: 4085.3458]
+Thu 23 May 2024 16:22:59 INFO  epoch 30 evaluating [time: 7.63s, valid_score: 0.341500]
+Thu 23 May 2024 16:22:59 INFO  valid result: 
+recall@5 : 0.5017    recall@10 : 0.6205    recall@20 : 0.711    mrr@5 : 0.319    mrr@10 : 0.3351    mrr@20 : 0.3415
+Thu 23 May 2024 16:25:11 INFO  epoch 31 training [time: 132.07s, train loss: 4083.5102]
+Thu 23 May 2024 16:25:18 INFO  epoch 31 evaluating [time: 6.76s, valid_score: 0.342100]
+Thu 23 May 2024 16:25:18 INFO  valid result: 
+recall@5 : 0.5027    recall@10 : 0.62    recall@20 : 0.7111    mrr@5 : 0.3198    mrr@10 : 0.3357    mrr@20 : 0.3421
+Thu 23 May 2024 16:25:18 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:27:30 INFO  epoch 32 training [time: 132.23s, train loss: 4079.8257]
+Thu 23 May 2024 16:27:38 INFO  epoch 32 evaluating [time: 7.43s, valid_score: 0.342100]
+Thu 23 May 2024 16:27:38 INFO  valid result: 
+recall@5 : 0.5027    recall@10 : 0.6206    recall@20 : 0.7115    mrr@5 : 0.3198    mrr@10 : 0.3357    mrr@20 : 0.3421
+Thu 23 May 2024 16:27:38 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:29:49 INFO  epoch 33 training [time: 131.68s, train loss: 4078.9916]
+Thu 23 May 2024 16:29:56 INFO  epoch 33 evaluating [time: 6.58s, valid_score: 0.341900]
+Thu 23 May 2024 16:29:56 INFO  valid result: 
+recall@5 : 0.5025    recall@10 : 0.62    recall@20 : 0.7109    mrr@5 : 0.3196    mrr@10 : 0.3355    mrr@20 : 0.3419
+Thu 23 May 2024 16:32:06 INFO  epoch 34 training [time: 129.98s, train loss: 4076.9184]
+Thu 23 May 2024 16:32:13 INFO  epoch 34 evaluating [time: 6.62s, valid_score: 0.342100]
+Thu 23 May 2024 16:32:13 INFO  valid result: 
+recall@5 : 0.5023    recall@10 : 0.6207    recall@20 : 0.7117    mrr@5 : 0.3197    mrr@10 : 0.3357    mrr@20 : 0.3421
+Thu 23 May 2024 16:32:13 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:34:23 INFO  epoch 35 training [time: 129.97s, train loss: 4074.2409]
+Thu 23 May 2024 16:34:29 INFO  epoch 35 evaluating [time: 6.62s, valid_score: 0.342000]
+Thu 23 May 2024 16:34:29 INFO  valid result: 
+recall@5 : 0.5022    recall@10 : 0.6213    recall@20 : 0.7118    mrr@5 : 0.3195    mrr@10 : 0.3356    mrr@20 : 0.342
+Thu 23 May 2024 16:36:41 INFO  epoch 36 training [time: 131.40s, train loss: 4072.6958]
+Thu 23 May 2024 16:36:47 INFO  epoch 36 evaluating [time: 6.58s, valid_score: 0.343100]
+Thu 23 May 2024 16:36:47 INFO  valid result: 
+recall@5 : 0.5041    recall@10 : 0.6208    recall@20 : 0.7113    mrr@5 : 0.321    mrr@10 : 0.3367    mrr@20 : 0.3431
+Thu 23 May 2024 16:36:47 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:38:58 INFO  epoch 37 training [time: 130.37s, train loss: 4070.6052]
+Thu 23 May 2024 16:39:04 INFO  epoch 37 evaluating [time: 6.59s, valid_score: 0.342400]
+Thu 23 May 2024 16:39:04 INFO  valid result: 
+recall@5 : 0.5019    recall@10 : 0.6207    recall@20 : 0.7111    mrr@5 : 0.3199    mrr@10 : 0.336    mrr@20 : 0.3424
+Thu 23 May 2024 16:41:17 INFO  epoch 38 training [time: 132.72s, train loss: 4068.9966]
+Thu 23 May 2024 16:41:25 INFO  epoch 38 evaluating [time: 7.63s, valid_score: 0.343100]
+Thu 23 May 2024 16:41:25 INFO  valid result: 
+recall@5 : 0.5032    recall@10 : 0.6206    recall@20 : 0.7112    mrr@5 : 0.3208    mrr@10 : 0.3367    mrr@20 : 0.3431
+Thu 23 May 2024 16:41:25 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:43:36 INFO  epoch 39 training [time: 131.61s, train loss: 4065.4175]
+Thu 23 May 2024 16:43:44 INFO  epoch 39 evaluating [time: 7.61s, valid_score: 0.343100]
+Thu 23 May 2024 16:43:44 INFO  valid result: 
+recall@5 : 0.5027    recall@10 : 0.6205    recall@20 : 0.7109    mrr@5 : 0.3208    mrr@10 : 0.3367    mrr@20 : 0.3431
+Thu 23 May 2024 16:43:44 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:45:57 INFO  epoch 40 training [time: 132.92s, train loss: 4065.6915]
+Thu 23 May 2024 16:46:04 INFO  epoch 40 evaluating [time: 6.60s, valid_score: 0.342700]
+Thu 23 May 2024 16:46:04 INFO  valid result: 
+recall@5 : 0.5031    recall@10 : 0.6205    recall@20 : 0.7108    mrr@5 : 0.3205    mrr@10 : 0.3363    mrr@20 : 0.3427
+Thu 23 May 2024 16:48:15 INFO  epoch 41 training [time: 131.07s, train loss: 4063.0386]
+Thu 23 May 2024 16:48:22 INFO  epoch 41 evaluating [time: 7.61s, valid_score: 0.342900]
+Thu 23 May 2024 16:48:22 INFO  valid result: 
+recall@5 : 0.5019    recall@10 : 0.6199    recall@20 : 0.7111    mrr@5 : 0.3205    mrr@10 : 0.3365    mrr@20 : 0.3429
+Thu 23 May 2024 16:50:34 INFO  epoch 42 training [time: 131.77s, train loss: 4062.5458]
+Thu 23 May 2024 16:50:42 INFO  epoch 42 evaluating [time: 7.62s, valid_score: 0.343300]
+Thu 23 May 2024 16:50:42 INFO  valid result: 
+recall@5 : 0.5027    recall@10 : 0.6198    recall@20 : 0.7109    mrr@5 : 0.3211    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 16:50:42 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:52:55 INFO  epoch 43 training [time: 132.95s, train loss: 4060.0923]
+Thu 23 May 2024 16:53:02 INFO  epoch 43 evaluating [time: 7.63s, valid_score: 0.343100]
+Thu 23 May 2024 16:53:02 INFO  valid result: 
+recall@5 : 0.5025    recall@10 : 0.6202    recall@20 : 0.7106    mrr@5 : 0.3208    mrr@10 : 0.3367    mrr@20 : 0.3431
+Thu 23 May 2024 16:55:15 INFO  epoch 44 training [time: 132.57s, train loss: 4058.0744]
+Thu 23 May 2024 16:55:22 INFO  epoch 44 evaluating [time: 7.61s, valid_score: 0.343200]
+Thu 23 May 2024 16:55:22 INFO  valid result: 
+recall@5 : 0.5034    recall@10 : 0.6198    recall@20 : 0.7102    mrr@5 : 0.3211    mrr@10 : 0.3368    mrr@20 : 0.3432
+Thu 23 May 2024 16:57:33 INFO  epoch 45 training [time: 130.38s, train loss: 4057.1564]
+Thu 23 May 2024 16:57:39 INFO  epoch 45 evaluating [time: 6.59s, valid_score: 0.343300]
+Thu 23 May 2024 16:57:39 INFO  valid result: 
+recall@5 : 0.5023    recall@10 : 0.6198    recall@20 : 0.7109    mrr@5 : 0.321    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 16:57:39 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 16:59:49 INFO  epoch 46 training [time: 129.88s, train loss: 4056.3479]
+Thu 23 May 2024 16:59:56 INFO  epoch 46 evaluating [time: 6.59s, valid_score: 0.343300]
+Thu 23 May 2024 16:59:56 INFO  valid result: 
+recall@5 : 0.5028    recall@10 : 0.6197    recall@20 : 0.7106    mrr@5 : 0.3211    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 16:59:56 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:02:06 INFO  epoch 47 training [time: 129.81s, train loss: 4054.8151]
+Thu 23 May 2024 17:02:12 INFO  epoch 47 evaluating [time: 6.59s, valid_score: 0.343200]
+Thu 23 May 2024 17:02:12 INFO  valid result: 
+recall@5 : 0.5034    recall@10 : 0.6208    recall@20 : 0.7108    mrr@5 : 0.3209    mrr@10 : 0.3368    mrr@20 : 0.3432
+Thu 23 May 2024 17:04:24 INFO  epoch 48 training [time: 132.05s, train loss: 4053.4719]
+Thu 23 May 2024 17:04:31 INFO  epoch 48 evaluating [time: 6.89s, valid_score: 0.343300]
+Thu 23 May 2024 17:04:31 INFO  valid result: 
+recall@5 : 0.5037    recall@10 : 0.6204    recall@20 : 0.7115    mrr@5 : 0.3211    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 17:04:31 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:06:43 INFO  epoch 49 training [time: 131.28s, train loss: 4051.6037]
+Thu 23 May 2024 17:06:50 INFO  epoch 49 evaluating [time: 7.56s, valid_score: 0.343300]
+Thu 23 May 2024 17:06:50 INFO  valid result: 
+recall@5 : 0.5032    recall@10 : 0.6191    recall@20 : 0.7107    mrr@5 : 0.3212    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 17:06:50 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:09:03 INFO  epoch 50 training [time: 132.36s, train loss: 4049.9806]
+Thu 23 May 2024 17:09:10 INFO  epoch 50 evaluating [time: 6.93s, valid_score: 0.343300]
+Thu 23 May 2024 17:09:10 INFO  valid result: 
+recall@5 : 0.5028    recall@10 : 0.62    recall@20 : 0.711    mrr@5 : 0.321    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 17:09:10 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:11:21 INFO  epoch 51 training [time: 131.07s, train loss: 4049.6238]
+Thu 23 May 2024 17:11:28 INFO  epoch 51 evaluating [time: 7.13s, valid_score: 0.343100]
+Thu 23 May 2024 17:11:28 INFO  valid result: 
+recall@5 : 0.5031    recall@10 : 0.6196    recall@20 : 0.7106    mrr@5 : 0.3209    mrr@10 : 0.3366    mrr@20 : 0.3431
+Thu 23 May 2024 17:13:39 INFO  epoch 52 training [time: 130.67s, train loss: 4048.2552]
+Thu 23 May 2024 17:13:45 INFO  epoch 52 evaluating [time: 6.64s, valid_score: 0.343200]
+Thu 23 May 2024 17:13:45 INFO  valid result: 
+recall@5 : 0.5031    recall@10 : 0.6196    recall@20 : 0.7109    mrr@5 : 0.321    mrr@10 : 0.3367    mrr@20 : 0.3432
+Thu 23 May 2024 17:15:56 INFO  epoch 53 training [time: 131.24s, train loss: 4046.4799]
+Thu 23 May 2024 17:16:03 INFO  epoch 53 evaluating [time: 6.66s, valid_score: 0.343200]
+Thu 23 May 2024 17:16:03 INFO  valid result: 
+recall@5 : 0.5026    recall@10 : 0.6203    recall@20 : 0.7111    mrr@5 : 0.3209    mrr@10 : 0.3368    mrr@20 : 0.3432
+Thu 23 May 2024 17:18:14 INFO  epoch 54 training [time: 131.03s, train loss: 4046.7902]
+Thu 23 May 2024 17:18:21 INFO  epoch 54 evaluating [time: 6.60s, valid_score: 0.343300]
+Thu 23 May 2024 17:18:21 INFO  valid result: 
+recall@5 : 0.5034    recall@10 : 0.6203    recall@20 : 0.711    mrr@5 : 0.3211    mrr@10 : 0.3369    mrr@20 : 0.3433
+Thu 23 May 2024 17:18:21 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:20:32 INFO  epoch 55 training [time: 130.75s, train loss: 4044.5903]
+Thu 23 May 2024 17:20:38 INFO  epoch 55 evaluating [time: 6.51s, valid_score: 0.343700]
+Thu 23 May 2024 17:20:38 INFO  valid result: 
+recall@5 : 0.5033    recall@10 : 0.6203    recall@20 : 0.71    mrr@5 : 0.3216    mrr@10 : 0.3374    mrr@20 : 0.3437
+Thu 23 May 2024 17:20:38 INFO  Saving current: saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:22:49 INFO  epoch 56 training [time: 130.76s, train loss: 4043.2959]
+Thu 23 May 2024 17:22:55 INFO  epoch 56 evaluating [time: 6.58s, valid_score: 0.343300]
+Thu 23 May 2024 17:22:55 INFO  valid result: 
+recall@5 : 0.5026    recall@10 : 0.6204    recall@20 : 0.7108    mrr@5 : 0.3211    mrr@10 : 0.337    mrr@20 : 0.3433
+Thu 23 May 2024 17:25:06 INFO  epoch 57 training [time: 130.87s, train loss: 4043.2787]
+Thu 23 May 2024 17:25:13 INFO  epoch 57 evaluating [time: 6.55s, valid_score: 0.343500]
+Thu 23 May 2024 17:25:13 INFO  valid result: 
+recall@5 : 0.5028    recall@10 : 0.62    recall@20 : 0.7102    mrr@5 : 0.3213    mrr@10 : 0.3371    mrr@20 : 0.3435
+Thu 23 May 2024 17:27:24 INFO  epoch 58 training [time: 130.69s, train loss: 4042.5560]
+Thu 23 May 2024 17:27:30 INFO  epoch 58 evaluating [time: 6.71s, valid_score: 0.343100]
+Thu 23 May 2024 17:27:30 INFO  valid result: 
+recall@5 : 0.5031    recall@10 : 0.6193    recall@20 : 0.7101    mrr@5 : 0.321    mrr@10 : 0.3367    mrr@20 : 0.3431
+Thu 23 May 2024 17:29:41 INFO  epoch 59 training [time: 130.70s, train loss: 4041.1196]
+Thu 23 May 2024 17:29:47 INFO  epoch 59 evaluating [time: 6.50s, valid_score: 0.343500]
+Thu 23 May 2024 17:29:47 INFO  valid result: 
+recall@5 : 0.5034    recall@10 : 0.6203    recall@20 : 0.7108    mrr@5 : 0.3214    mrr@10 : 0.3372    mrr@20 : 0.3435
+Thu 23 May 2024 17:31:58 INFO  epoch 60 training [time: 130.47s, train loss: 4039.7188]
+Thu 23 May 2024 17:32:05 INFO  epoch 60 evaluating [time: 6.81s, valid_score: 0.343300]
+Thu 23 May 2024 17:32:05 INFO  valid result: 
+recall@5 : 0.5029    recall@10 : 0.6208    recall@20 : 0.7104    mrr@5 : 0.3211    mrr@10 : 0.337    mrr@20 : 0.3433
+Thu 23 May 2024 17:34:15 INFO  epoch 61 training [time: 130.15s, train loss: 4037.1763]
+Thu 23 May 2024 17:34:21 INFO  epoch 61 evaluating [time: 6.50s, valid_score: 0.343400]
+Thu 23 May 2024 17:34:21 INFO  valid result: 
+recall@5 : 0.5034    recall@10 : 0.6207    recall@20 : 0.7108    mrr@5 : 0.3212    mrr@10 : 0.337    mrr@20 : 0.3434
+Thu 23 May 2024 17:34:21 INFO  Finished training, best eval result in epoch 55
+Thu 23 May 2024 17:34:21 INFO  Loading model structure and parameters from saved/MIASREC-May-23-2024_15-11-37.pth
+Thu 23 May 2024 17:34:30 INFO  best valid : OrderedDict([('recall@5', 0.5033), ('recall@10', 0.6203), ('recall@20', 0.71), ('mrr@5', 0.3216), ('mrr@10', 0.3374), ('mrr@20', 0.3437)])
+Thu 23 May 2024 17:34:30 INFO  test result: OrderedDict([('recall@5', 0.4495), ('recall@10', 0.5603), ('recall@20', 0.6513), ('mrr@5', 0.2851), ('mrr@10', 0.3001), ('mrr@20', 0.3065)])
