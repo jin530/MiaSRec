@@ -1,14 +1,12 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-import copy
 
 from torch import nn
 from recbole.model.layers import TransformerEncoder
 from recbole.model.abstract_recommender import SequentialRecommender
-from IPython import embed
 from entmax import entmax_bisect
-from recbole.model.layers import FeedForward, MultiHeadAttention
+from recbole.model.layers import TransformerEncoder
 
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from utils_seq import reverse_packed_sequence
@@ -27,13 +25,11 @@ class TransNet(nn.Module):
         self.layer_norm_eps = config['layer_norm_eps']
         self.initializer_range = config['initializer_range']
         self.entmax_alpha = config['entmax_alpha'] if 'entmax_alpha' in config else -1
-        self.use_highway = config['use_highway']
         self.max_repeat = config['max_repeat'] if 'max_repeat' in config else 2
 
         self.position_embedding = nn.Embedding(dataset.field2seqlen['item_id_list']+1, self.hidden_size) # 0 for mean pooling
         self.repeat_embedding = nn.Embedding(self.max_repeat + 1, self.hidden_size, padding_idx=0)
         self.trm_encoder = TransformerEncoder(
-            config,
             n_layers=self.n_layers,
             n_heads=self.n_heads,
             hidden_size=self.hidden_size,
@@ -49,9 +45,7 @@ class TransNet(nn.Module):
 
         self.highway_fn = nn.Linear(self.hidden_size * 2, self.hidden_size)
         self.importance_fn = nn.Linear(self.hidden_size, 1, bias=False)
-        self.entmax_with_mean = config['entmax_with_mean'] if 'entmax_with_mean' in config else False
-        if self.entmax_with_mean:
-            self.importance_fn = nn.Linear(self.hidden_size * 2, 1)
+        self.importance_fn = nn.Linear(self.hidden_size * 2, 1)
 
         self.apply(self._init_weights)
 
@@ -86,15 +80,11 @@ class TransNet(nn.Module):
         trm_output = self.trm_encoder(input_emb, extended_attention_mask, output_all_encoded_layers=True)
         output = trm_output[-1]
 
-        if self.use_highway:
-            gate_vector = torch.sigmoid(self.highway_fn(torch.cat([item_emb, output], dim=-1))) # [B, L, D]
-            output = gate_vector * item_emb + (1 - gate_vector) * output
+        gate_vector = torch.sigmoid(self.highway_fn(torch.cat([item_emb, output], dim=-1))) # [B, L, D]
+        output = gate_vector * item_emb + (1 - gate_vector) * output
         
-        if self.entmax_with_mean:
-            output_w_mean = torch.cat([output[:, 0, :].unsqueeze(1).repeat(1, output.size(1), 1), output], dim=-1)
-            importance = self.importance_fn(output_w_mean).to(torch.double)
-        else:
-            importance = self.importance_fn(output).to(torch.double)
+        output_w_mean = torch.cat([output[:, 0, :].unsqueeze(1).repeat(1, output.size(1), 1), output], dim=-1)
+        importance = self.importance_fn(output_w_mean).to(torch.double)
         importance = torch.where(mask.unsqueeze(-1), importance, -9e15)
 
         alpha_for_entmax = self.entmax_alpha
@@ -139,15 +129,8 @@ class MIASREC(SequentialRecommender):
         self._reset_parameters()
 
         self.net = TransNet(config, dataset)
-        self.num_interest = config['num_interest']
         self.beta_logit = config['beta_logit']
         
-        self.use_mean = config['use_mean'] if 'use_mean' in config else False
-        self.extractor = config['extractor']
-        self.aggregator = config['aggregator']
-
-        self.use_entmax = config['use_entmax'] if 'use_entmax' in config else False
-
     def _reset_parameters(self):
         stdv = 1.0 / np.sqrt(self.embedding_size)
         for weight in self.parameters():
@@ -169,39 +152,22 @@ class MIASREC(SequentialRecommender):
 
         x = self.item_embedding(item_seq) # [B, L, D]
         
-        if self.use_mean:
-            alpha = self.ave_net(item_seq)
-            mean_emb = torch.sum(alpha * x, dim=1) # [B, D]
-            
-            x = torch.cat([mean_emb.unsqueeze(1), x], dim=1) # [B, L+1, D]
-            x = self.sess_dropout(x) # [B, L+1, D]
-            item_seq_w_mean = torch.cat([torch.ones_like(item_seq)[:, 0].view(-1, 1), item_seq], dim=1) # [B, L+1]
-        else:
-            x = self.sess_dropout(x)
-            item_seq_w_mean = item_seq.clone()
+        # use_mean
+        alpha = self.ave_net(item_seq)
+        mean_emb = torch.sum(alpha * x, dim=1) # [B, D]
+        
+        x = torch.cat([mean_emb.unsqueeze(1), x], dim=1) # [B, L+1, D]
+        x = self.sess_dropout(x) # [B, L+1, D]
+        item_seq_w_mean = torch.cat([torch.ones_like(item_seq)[:, 0].view(-1, 1), item_seq], dim=1) # [B, L+1]
 
         output, importance_alpha = self.net(item_seq_w_mean, x) # [B, L+1, D], [B, L+1, 1]
+        # entmax
+        output = output * importance_alpha.to(torch.float)
+        output_mask = (importance_alpha == 0)
+        item_seq_w_mean[output_mask[:,:,0]] = 0
 
-        if self.use_entmax:
-            output = output * importance_alpha.to(torch.float)
-            output_mask = (importance_alpha == 0)
-            item_seq_w_mean[output_mask[:,:,0]] = 0
-        else:
-            pass
 
         output = F.normalize(output, dim=2) # [B, L+1, D]
-
-        if self.extractor == 'last':
-            output = output[:, 1, :].unsqueeze(1) # [B, 1, D]
-            item_seq_w_mean = item_seq_w_mean[:, 0].unsqueeze(1) # [B, 1]
-        if self.extractor == 'first':
-            first_item_idx = torch.sum(item_seq_w_mean != 0, dim=1, keepdim=True) - 1 # [B, 1]
-            output = torch.gather(output, 1, first_item_idx.unsqueeze(-1).repeat(1, 1, output.size(-1))).squeeze(1) # [B, D]
-            output = output.unsqueeze(1) # [B, 1, D]
-            item_seq_w_mean = item_seq_w_mean[:, 0].unsqueeze(1) # [B, 1]
-        if self.extractor == 'mean':
-            output = output[:, 0, :].unsqueeze(1) # [B, 1, D]
-            item_seq_w_mean = item_seq_w_mean[:, 0].unsqueeze(1) # [B, 1]
 
         return item_seq_w_mean, output
 
@@ -216,20 +182,13 @@ class MIASREC(SequentialRecommender):
 
         logits_all = output @ all_item_emb.T # [B, 1+L, D] @ [D, N] = [B, L, N]
 
-        if self.aggregator == 'max':
-            logits = torch.max(logits_all, dim=1)[0] / self.temperature  # [B, N]  # logits[1] = [-1.4918,  0.1595, -2.9134,  ..., -1.2865,  1.9893,  2.8495],
-        if self.aggregator == 'mean':
-            logits_all[item_seq == 0] = 0
-            logits = torch.sum(logits_all, dim=1) / torch.sum(item_seq != 0, dim=1, keepdim=True)  # [B, N]
-            logits = logits / self.temperature
-        if self.aggregator == 'max_mean':
-            max_logits = torch.max(logits_all, dim=1)[0] / self.temperature  # [B, N]  # logits[1] = [-1.4918,  0.1595, -2.9134,  ..., -1.2865,  1.9893,  2.8495],
-            
-            logits_all[item_seq == 0] = 0
-            mean_logits = torch.sum(logits_all, dim=1) / torch.sum(item_seq != 0, dim=1, keepdim=True)  # [B, N]
-            mean_logits = mean_logits / self.temperature
+        max_logits = torch.max(logits_all, dim=1)[0] / self.temperature  # [B, N]  # logits[1] = [-1.4918,  0.1595, -2.9134,  ..., -1.2865,  1.9893,  2.8495],
+        
+        logits_all[item_seq == 0] = 0
+        mean_logits = torch.sum(logits_all, dim=1) / torch.sum(item_seq != 0, dim=1, keepdim=True)  # [B, N]
+        mean_logits = mean_logits / self.temperature
 
-            logits = max_logits * self.beta_logit + mean_logits * (1 - self.beta_logit)
+        logits = max_logits * self.beta_logit + mean_logits * (1 - self.beta_logit)
 
         loss = self.loss_fct(logits, pos_items)
 
@@ -246,105 +205,11 @@ class MIASREC(SequentialRecommender):
 
         scores_all = output @ test_item_emb.T # [B, L, D] @ [D, N] = [B, L, N]
         
-        if self.aggregator == 'max':
-            scores = torch.max(scores_all, dim=1)[0]  # [B, N]
-        if self.aggregator == 'mean':
-            scores_all[item_seq == 0] = 0
-            scores = torch.sum(scores_all, dim=1) / torch.sum(item_seq != 0, dim=1, keepdim=True)  # [B, N]
-        if self.aggregator == 'max_mean':
-            max_scores = torch.max(scores_all, dim=1)[0] 
+        max_scores = torch.max(scores_all, dim=1)[0] 
 
-            scores_all[item_seq == 0] = 0
-            mean_scores = torch.sum(scores_all, dim=1) / torch.sum(item_seq != 0, dim=1, keepdim=True)  # [B, N]
+        scores_all[item_seq == 0] = 0
+        mean_scores = torch.sum(scores_all, dim=1) / torch.sum(item_seq != 0, dim=1, keepdim=True)  # [B, N]
 
-            scores = max_scores * self.beta_logit + mean_scores * (1 - self.beta_logit)
+        scores = max_scores * self.beta_logit + mean_scores * (1 - self.beta_logit)
 
         return scores
-
-class TransformerEncoder(nn.Module):
-    r""" One TransformerEncoder consists of several TransformerLayers.
-
-        - n_layers(num): num of transformer layers in transformer encoder. Default: 2
-        - n_heads(num): num of attention heads for multi-head attention layer. Default: 2
-        - hidden_size(num): the input and output hidden size. Default: 64
-        - inner_size(num): the dimensionality in feed-forward layer. Default: 256
-        - hidden_dropout_prob(float): probability of an element to be zeroed. Default: 0.5
-        - attn_dropout_prob(float): probability of an attention score to be zeroed. Default: 0.5
-        - hidden_act(str): activation function in feed-forward layer. Default: 'gelu'
-                      candidates: 'gelu', 'relu', 'swish', 'tanh', 'sigmoid'
-        - layer_norm_eps(float): a value added to the denominator for numerical stability. Default: 1e-12
-
-    """
-
-    def __init__(
-        self,
-        config,
-        n_layers=2,
-        n_heads=2,
-        hidden_size=64,
-        inner_size=256,
-        hidden_dropout_prob=0.5,
-        attn_dropout_prob=0.5,
-        hidden_act='gelu',
-        layer_norm_eps=1e-12
-    ):
-
-        super(TransformerEncoder, self).__init__()
-        layer = TransformerLayer(
-            config, n_heads, hidden_size, inner_size, hidden_dropout_prob, attn_dropout_prob, hidden_act, layer_norm_eps
-        )
-        self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(n_layers)])
-
-    def forward(self, hidden_states, attention_mask, output_all_encoded_layers=True):
-        """
-        Args:
-            hidden_states (torch.Tensor): the input of the TransformerEncoder
-            attention_mask (torch.Tensor): the attention mask for the input hidden_states
-            output_all_encoded_layers (Bool): whether output all transformer layers' output
-
-        Returns:
-            all_encoder_layers (list): if output_all_encoded_layers is True, return a list consists of all transformer
-            layers' output, otherwise return a list only consists of the output of last transformer layer.
-
-        """
-        all_encoder_layers = []
-        for layer_module in self.layer:
-            hidden_states = layer_module(hidden_states, attention_mask)
-            if output_all_encoded_layers:
-                all_encoder_layers.append(hidden_states)
-        if not output_all_encoded_layers:
-            all_encoder_layers.append(hidden_states)
-        return all_encoder_layers
-    
-class TransformerLayer(nn.Module):
-    """
-    One transformer layer consists of a multi-head self-attention layer and a point-wise feed-forward layer.
-
-    Args:
-        hidden_states (torch.Tensor): the input of the multi-head self-attention sublayer
-        attention_mask (torch.Tensor): the attention mask for the multi-head self-attention sublayer
-
-    Returns:
-        feedforward_output (torch.Tensor): The output of the point-wise feed-forward sublayer,
-                                           is the output of the transformer layer.
-
-    """
-
-    def __init__(
-        self, config, n_heads, hidden_size, intermediate_size, hidden_dropout_prob, attn_dropout_prob, hidden_act,
-        layer_norm_eps
-    ):
-        super(TransformerLayer, self).__init__()
-        self.multi_head_attention = MultiHeadAttention(
-            n_heads, hidden_size, hidden_dropout_prob, attn_dropout_prob, layer_norm_eps
-        )
-        self.feed_forward = FeedForward(hidden_size, intermediate_size, hidden_dropout_prob, hidden_act, layer_norm_eps)
-
-        self.no_ffn = config['no_ffn'] if 'no_ffn' in config else True
-
-    def forward(self, hidden_states, attention_mask):
-        attention_output = self.multi_head_attention(hidden_states, attention_mask)
-        if self.no_ffn:
-            return attention_output
-        feedforward_output = self.feed_forward(attention_output)
-        return feedforward_output
