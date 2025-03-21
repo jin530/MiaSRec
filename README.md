@@ -1,7 +1,7 @@
 # MiaSRec
 This is the official code for SIGIR 2024 paper: 'Multi-intent-aware Session-based Recommendation'.
 
-We implemented our model based on the recommedndation framework library [RecBole v1.2.0)](https://github.com/RUCAIBox/RecBole) and [CORE](https://github.com/RUCAIBox/CORE).
+We implemented our model based on the recommendation framework library [RecBole v1.2.0](https://github.com/RUCAIBox/RecBole) and [CORE](https://github.com/RUCAIBox/CORE).
 
 ## Requirements
 
@@ -34,12 +34,20 @@ python main.py --model miasrec --dataset lastfm --beta_logit 0.9
 ```
 
 ## Citation
-Please cite our papaer:
+Please cite our paper:
 ```
-@article{choi2024multi,
-  title={Multi-intent-aware Session-based Recommendation},
-  author={Choi, Minjin and Kim, Hye-young and Cho, Hyunsouk and Lee, Jongwuk},
-  journal={arXiv preprint arXiv:2405.00986},
-  year={2024}
+@inproceedings{sigir/0001KCL24,
+  author       = {Minjin Choi and
+                  Hye{-}young Kim and
+                  Hyunsouk Cho and
+                  Jongwuk Lee},
+  title        = {Multi-intent-aware Session-based Recommendation},
+  booktitle    = {Proceedings of the 47th International {ACM} {SIGIR} Conference on
+                  Research and Development in Information Retrieval, {SIGIR} 2024, Washington
+                  DC, USA, July 14-18, 2024},
+  pages        = {2532--2536},
+  publisher    = {{ACM}},
+  year         = {2024},
+  doi          = {10.1145/3626772.3657928},
 }
 ```
